@@ -45,7 +45,7 @@ else
     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
     echo "✅ Datenbank $DB_NAME wurde erstellt und Benutzer $DB_USER hinzugefügt."
 fi
-
+sudo chown-R $(whoami):(whoami) $INSTALL_DIR
 # Virtuelle Umgebung erstellen
 echo "🐍 Erstelle virtuelle Umgebung..."
 sudo python3 -m venv venv
