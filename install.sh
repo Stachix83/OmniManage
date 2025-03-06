@@ -3,19 +3,6 @@
 # Zielverzeichnis
 INSTALL_DIR="/opt/omnimanage"
 
-# Prüfen, ob das Verzeichnis existiert
-if [ -d "$INSTALL_DIR" ]; then
-    echo "⚠️  Das Verzeichnis $INSTALL_DIR existiert bereits."
-    read -p "Möchtest du es überschreiben? (ja/nein): " CONFIRM
-    if [[ "$CONFIRM" =~ ^[Jj]a$ ]]; then
-        echo "🗑️  Lösche altes Verzeichnis..."
-        sudo rm -rf "$INSTALL_DIR"
-    else
-        echo "❌ Installation abgebrochen."
-        exit 1
-    fi
-fi
-
 # Projekt klonen
 echo "🔄 Klone OmniManage-Repository..."
 git clone https://github.com/stachix83/omnimanage.git "$INSTALL_DIR"
