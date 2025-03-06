@@ -48,18 +48,18 @@ fi
 
 # Virtuelle Umgebung erstellen
 echo "🐍 Erstelle virtuelle Umgebung..."
-python3 -m venv venv
+sudo python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+sudo pip install -r requirements.txt
 
 # Flask WebUI installieren
 echo "🌐 Installiere Flask WebUI..."
-pip install flask flask-cors
+sudo pip install flask flask-cors
 
 # Systemd-Dienste kopieren
 echo "📂 Kopiere Systemd-Dienste nach /etc/systemd/system/..."
-sudo cp "$SYSTEMD_DIR/system-services/omnimanage.service" /etc/systemd/system/
-sudo cp "$SYSTEMD_DIR/system-services/omnimanage-web.service" /etc/systemd/system/
+sudo cp "/system-services/omnimanage.service" /etc/systemd/system/
+sudo cp "/system-services/omnimanage-web.service" /etc/systemd/system/
 
 # Dienste starten & aktivieren
 echo "🚀 Starte OmniManage Backend & WebUI..."
