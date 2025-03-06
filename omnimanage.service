@@ -1,0 +1,13 @@
+[Unit]
+Description=OmniManage FastAPI Server
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/omnimanage
+ExecStart=/opt/omnimanage/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+restartSec=5
+
+[Install]
+WantedBy=multi-user.target

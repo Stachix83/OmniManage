@@ -2,6 +2,22 @@
 
 # Zielverzeichnis
 INSTALL_DIR="/opt/omnimanage"
+SYSTEMD_DIR="$INSTALL_DIR/systemd"
+
+# Prüfen, ob das Verzeichnis existiert
+if [ -d "$INSTALL_DIR" ]; then
+    echo "⚠️  Das Verzeichnis $INSTALL_DIR existiert bereits."
+    read -p "Möchtest du es überschreiben? (ja/nein): " CONFIRM
+    if [[ "$CONFIRM" =~ ^[Jj]a$ ]]; then
+        echo "🗑️  Lösche altes Verzeichnis..."
+        sudo rm -rf "$INSTALL_DIR"
+    elif [[ "$CONFIRM" =~ ^[Nn]ein$ ]]; then
+        echo "➡️  Nutze bestehendes Verzeichnis für die Installation..."
+    else
+        echo "❌ Ungültige Eingabe. Installation abgebrochen."
+        exit 1
+    fi
+fi
 
 # Projekt klonen
 echo "🔄 Klone OmniManage-Repository..."
@@ -61,35 +77,10 @@ pip install -r requirements.txt
 echo "🌐 Installiere Flask WebUI..."
 pip install flask flask-cors
 
-# Systemd-Dienst für FastAPI Backend erstellen
-echo "🛠️  Erstelle Systemd-Dienst für OmniManage Backend..."
-echo "[Unit]
-Description=OmniManage FastAPI Server
-After=network.target
-
-[Service]
-User=root
-WorkingDirectory=$(pwd)
-ExecStart=$(pwd)/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
-Restart=always
-
-[Install]
-WantedBy=multi-user.target" | sudo tee /etc/systemd/system/omnimanage.service
-
-# Systemd-Dienst für Flask WebUI erstellen
-echo "🛠️  Erstelle Systemd-Dienst für OmniManage WebUI..."
-echo "[Unit]
-Description=OmniManage Flask WebUI
-After=network.target
-
-[Service]
-User=root
-WorkingDirectory=$INSTALL_DIR
-ExecStart=$INSTALL_DIR/venv/bin/python frontend/frontend.py
-Restart=always
-
-[Install]
-WantedBy=multi-user.target" | sudo tee /etc/systemd/system/omnimanage-web.service
+# Systemd-Dienste kopieren
+echo "📂 Kopiere Systemd-Dienste nach /etc/systemd/system/..."
+sudo cp "$SYSTEMD_DIR/omnimanage.service" /etc/systemd/system/
+sudo cp "$SYSTEMD_DIR/omnimanage-web.service" /etc/systemd/system/
 
 # Dienste starten & aktivieren
 echo "🚀 Starte OmniManage Backend & WebUI..."

@@ -1,0 +1,13 @@
+[Unit]
+Description=OmniManage Flask WebUI
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/omnimanage
+ExecStart=/opt/omnimanage/venv/bin/python frontend/frontend.py
+Restart=always
+restartSec=5
+
+[Install]
+WantedBy=multi-user.target
