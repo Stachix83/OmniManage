@@ -4,29 +4,7 @@
 INSTALL_DIR="/opt/omnimanage"
 SYSTEMD_DIR="$INSTALL_DIR/systemd"
 
-# Prüfen, ob das Verzeichnis existiert
-if [ -d "$INSTALL_DIR" ]; then
-    echo "⚠️  Das Verzeichnis $INSTALL_DIR existiert bereits."
-    read -p "Möchtest du es überschreiben? (JA/n): " CONFIRM
-    CONFIRM=${CONFIRM:-ja}  # Standardmäßig JA setzen
-    if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then
-        echo "➡️  Nutze bestehendes Verzeichnis für die Installation..."
-    elif [[ "$CONFIRM" =~ ^[Jj]a$ ]]; then
-        echo "🗑️  Lösche altes Verzeichnis..."
-        sudo rm -rf "$INSTALL_DIR"
-    else
-        echo "❌ Ungültige Eingabe. Installation abgebrochen."
-        exit 1
-    fi
-fi
-
-# Projekt klonen
-echo "🔄 Klone OmniManage-Repository..."
-sudo git clone https://github.com/stachix83/omnimanage.git "$INSTALL_DIR"
-
-# Wechsel ins Installationsverzeichnis
-cd "$INSTALL_DIR"
-
+# Installationsskript
 # System-Updates durchführen
 echo "🔄 System wird aktualisiert..."
 sudo apt update && sudo apt upgrade -y
