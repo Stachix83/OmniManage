@@ -28,6 +28,11 @@ httpx
 # dotenv für Umgebungsvariablen (falls du eine .env Datei nutzt)
 python-dotenv
 
+# flask für das Frontend
+flask
+
+flask-cors
+
 # Optional: psycopg2 für PostgreSQL oder mysqlclient für MySQL
 psycopg2-binary  # Falls du PostgreSQL nutzt
 # mysqlclient      # Falls du MySQL/MariaDB nutzt
