@@ -1,0 +1,42 @@
+# FastAPI für das Backend
+fastapi[all]
+
+# Uvicorn als ASGI-Server
+uvicorn[standard]
+
+# SQLAlchemy für die Datenbankverwaltung
+sqlalchemy
+
+# Pydantic für Datenvalidierung und -serialisierung
+pydantic[email]
+
+# Alembic für Datenbankmigrationen (optional, falls benötigt)
+alembic
+
+# Passlib für sichere Passwort-Hashes (optional, falls Authentifizierung geplant)
+passlib[bcrypt]
+
+# Authlib für OAuth/OpenID (falls OAuth geplant ist)
+authlib
+
+# Python-JWT für Token-basierte Authentifizierung
+pyjwt
+
+# HTTPX für asynchrone HTTP-Requests (z. B. API-Calls an externe Dienste)
+httpx
+
+# dotenv für Umgebungsvariablen (falls du eine .env Datei nutzt)
+python-dotenv
+
+# Optional: psycopg2 für PostgreSQL oder mysqlclient für MySQL
+psycopg2-binary  # Falls du PostgreSQL nutzt
+# mysqlclient      # Falls du MySQL/MariaDB nutzt
+
+# Optional: Redis für Caching oder WebSockets
+redis
+
+# Optional: Celery für Hintergrundaufgaben
+celery[redis]
+
+# Optional: Loguru für bessere Logs
+loguru
