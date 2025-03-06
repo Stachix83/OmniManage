@@ -22,7 +22,7 @@ fi
 
 # Projekt klonen
 echo "🔄 Klone OmniManage-Repository..."
-git clone https://github.com/stachix83/omnimanage.git "$INSTALL_DIR"
+sudo git clone https://github.com/stachix83/omnimanage.git "$INSTALL_DIR"
 
 # Wechsel ins Installationsverzeichnis
 cd "$INSTALL_DIR"
