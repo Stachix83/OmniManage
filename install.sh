@@ -7,12 +7,13 @@ SYSTEMD_DIR="$INSTALL_DIR/systemd"
 # Prüfen, ob das Verzeichnis existiert
 if [ -d "$INSTALL_DIR" ]; then
     echo "⚠️  Das Verzeichnis $INSTALL_DIR existiert bereits."
-    read -p "Möchtest du es überschreiben? (ja/nein): " CONFIRM
-    if [[ "$CONFIRM" =~ ^[Jj]a$ ]]; then
+    read -p "Möchtest du es überschreiben? (JA/n): " CONFIRM
+    CONFIRM=${CONFIRM:-ja}  # Standardmäßig JA setzen
+    if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then
+        echo "➡️  Nutze bestehendes Verzeichnis für die Installation..."
+    elif [[ "$CONFIRM" =~ ^[Jj]a$ ]]; then
         echo "🗑️  Lösche altes Verzeichnis..."
         sudo rm -rf "$INSTALL_DIR"
-    elif [[ "$CONFIRM" =~ ^[Nn]ein$ ]]; then
-        echo "➡️  Nutze bestehendes Verzeichnis für die Installation..."
     else
         echo "❌ Ungültige Eingabe. Installation abgebrochen."
         exit 1
@@ -79,8 +80,8 @@ pip install flask flask-cors
 
 # Systemd-Dienste kopieren
 echo "📂 Kopiere Systemd-Dienste nach /etc/systemd/system/..."
-sudo cp "$SYSTEMD_DIR/omnimanage.service" /etc/systemd/system/
-sudo cp "$SYSTEMD_DIR/omnimanage-web.service" /etc/systemd/system/
+sudo cp "$SYSTEMD_DIR/system-services/omnimanage.service" /etc/systemd/system/
+sudo cp "$SYSTEMD_DIR/system-services/omnimanage-web.service" /etc/systemd/system/
 
 # Dienste starten & aktivieren
 echo "🚀 Starte OmniManage Backend & WebUI..."
