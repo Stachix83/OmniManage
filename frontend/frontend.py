@@ -1,7 +1,7 @@
 from flask import Flask, render_template, session
 import sys
 sys.path.append("/opt/omnimanage/frontend")
-from frontend.auth import auth_bp
+from auth import auth_bp
 
 app = Flask(__name__)
 app.secret_key = "supergeheimespasswort"  # Sollte aus `.env` geladen werden
