@@ -39,6 +39,8 @@ EOF
 echo "📂 Kopiere Systemd-Dienste nach /etc/systemd/system/..."
 sudo cp "$SYSTEMD_DIR/omnimanage.service" /etc/systemd/system/
 sudo cp "$SYSTEMD_DIR/omnimanageweb.service" /etc/systemd/system/
+sudo chmod 644 /etc/systemd/system/omnimanage.service
+sudo chmod 644 /etc/systemd/system/omnimanage-web.service
 
 # Systemd-Dienst anpassen, damit er unter 'omnimanage' läuft
 echo "🛠️ Konfiguriere Systemd-Dienste..."
@@ -56,8 +58,8 @@ echo "🔍 Überprüfe OmniManage-Dienststatus..."
 if systemctl is-active --quiet omnimanage.service; then
     echo "✅ OmniManage Backend läuft erfolgreich!"
 else
-    echo "❌ Fehler: OmniManage Backend konnte nicht gestartet werden. Bitte überprüfe die Logs mit:"
-    echo "   sudo journalctl -u omnimanage.service --no-pager"
+    echo " ❌  Fehler: OmniManage Backend konnte nicht gestartet werden. Bitte überprüfe die Logs mit:"
+    echo "      sudo journalctl -u omnimanage.service --no-pager"
     exit 1
 fi
 
