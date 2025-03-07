@@ -10,12 +10,12 @@
     <nav>
         <a href="/">Home</a>
         <a href="/devices">Geräte</a>
-        {% if session["user"] %}
-            <span>Willkommen, {{ session["user"]["username"] }}</span>
-            <a href="/logout">Logout</a>
+        {% if session.get("token") %}
+            <a href="/auth/me">Mein Profil</a>
+            <a href="/auth/logout">Logout</a>
         {% else %}
-            <a href="/login.html">Login</a>
-            <a href="/register.html">Registrieren</a>
+            <a href="/auth/login">Login</a>
+            <a href="/auth/register">Registrieren</a>
         {% endif %}
     </nav>
     <main>

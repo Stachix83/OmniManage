@@ -4,7 +4,7 @@ import os
 
 auth_bp = Blueprint("auth", __name__)
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/api")
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
@@ -23,7 +23,6 @@ def register():
     
     return render_template("register.html")
 
-
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -31,9 +30,10 @@ def login():
             "username": request.form["username"],
             "password": request.form["password"]
         }
-        response = requests.post(f"{API_URL}/login", data=data)
+        response = requests.post(f"{API_URL}/login", json=data)
         if response.status_code == 200:
-            session["token"] = response.json()["access_token"]
+            token = response.json()["access_token"]
+            session["token"] = token
             flash("Erfolgreich angemeldet!", "success")
             return redirect(url_for("index"))
         else:
@@ -43,12 +43,22 @@ def login():
 
 @auth_bp.route("/logout")
 def logout():
-    session.pop("user", None)
+    session.pop("token", None)
+    flash("Erfolgreich ausgeloggt", "info")
     return redirect(url_for("index"))
 
-@auth_bp.route("/auth")
-def auth():
-    token = request.args.get("token")
-    user_info = requests.get(f"{API_URL}/auth", headers={"Authorization": f"Bearer {token}"}).json()
-    session["user"] = user_info
-    return redirect(url_for("index"))
+@auth_bp.route("/me")
+def me():
+    token = session.get("token")
+    if not token:
+        flash("Bitte zuerst anmelden!", "warning")
+        return redirect(url_for("auth.login"))
+
+    headers = {"Authorization": f"Bearer {token}"}
+    response = requests.get(f"{API_URL}/me", headers=headers)
+    
+    if response.status_code == 200:
+        return response.json()
+    else:
+        flash("Fehler beim Abrufen der Benutzerdaten", "danger")
+        return redirect(url_for("auth.login"))
