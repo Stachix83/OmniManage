@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 import uvicorn
-from app.routes import devices, users, remote, websocket
+from routes import devices, users, remote, websocket
 
 app = FastAPI()
 
