@@ -1,4 +1,6 @@
 from flask import Flask, render_template, session
+import sys
+sys.path.append("/opt/omnimanage/frontend")
 from frontend.auth import auth_bp
 
 app = Flask(__name__)
