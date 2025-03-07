@@ -14,6 +14,9 @@ fi
 # Berechtigungen setzen
 echo "🔧 Setze Verzeichnisrechte..."
 sudo chown -R "$OMNIMANAGE_USER:$OMNIMANAGE_USER" "$INSTALL_DIR"
+echo "setze Exekutierrechte für update.sh & deinstall.sh..."
+sudo chmod +x "$INSTALL_DIR/update.sh"
+sudo chmod +x "$INSTALL_DIR/deinstall.sh"
 
 # Als OmniManage-Benutzer das Setup ausführen
 echo "🚀 Starte Installation als '$OMNIMANAGE_USER'..."
@@ -73,10 +76,11 @@ WantedBy=multi-user.target" | sudo tee /etc/systemd/system/omnimanage-web.servic
 
 # Systemd-Dienste starten
 echo "🚀 Starte OmniManage Backend & WebUI..."
+sudo chmod 644 /etc/systemd/system/omnimanage.service
+sudo chmod 644 /etc/systemd/system/omnimanage-web.service
 sudo systemctl daemon-reload
 sudo systemctl enable omnimanage-web.service
 sudo systemctl enable omnimanage.service
-
 sudo systemctl start omnimanage-web.service
 sudo systemctl start omnimanage.service
 
