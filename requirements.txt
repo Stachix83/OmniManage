@@ -28,10 +28,17 @@ httpx
 # dotenv für Umgebungsvariablen (falls du eine .env Datei nutzt)
 python-dotenv
 
-# flask für das Frontend
+# Flask für das Frontend
 flask
 
+# CORS-Unterstützung für Flask
 flask-cors
+
+# Flask-Login für Benutzerauthentifizierung in der WebUI
+flask-login
+
+# Flask-WTF für sichere Formulareingaben
+flask-wtf
 
 # Optional: psycopg2 für PostgreSQL oder mysqlclient für MySQL
 psycopg2-binary  # Falls du PostgreSQL nutzt
@@ -46,4 +53,11 @@ celery[redis]
 # Optional: Loguru für bessere Logs
 loguru
 
-Requests
+# Requests für einfache HTTP-Requests
+requests
+
+# Optional: Werkzeug für erweiterte WSGI-Funktionalitäten
+werkzeug
+
+# Optional: Gunicorn für den produktiven Betrieb mit FastAPI
+# gunicorn
