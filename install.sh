@@ -3,54 +3,25 @@
 # Zielverzeichnis
 INSTALL_DIR="/opt/omnimanage"
 SYSTEMD_DIR="$INSTALL_DIR/system-services"
+OMNIMANAGE_USER="omnimanage"
 
-# Installationsskript
-# System-Updates durchführen
-echo "🔄 System wird aktualisiert..."
-sudo apt update && sudo apt upgrade -y
-
-# Abhängigkeiten prüfen
-dependencies=("python3" "python3-venv" "python3-pip" "postgresql" "postgresql-contrib" "git")
-echo "📦 Prüfe erforderliche Pakete..."
-for package in "${dependencies[@]}"; do
-    if ! dpkg -l | grep -q "^ii  $package"; then
-        echo "⚠️  $package fehlt. Wird installiert..."
-        sudo apt install -y $package
-    else
-        echo "✅ $package ist bereits installiert."
-    fi
-done
-
-# PostgreSQL-Status prüfen
-if ! systemctl is-active --quiet postgresql; then
-    echo "⚠️  PostgreSQL läuft nicht. Starte PostgreSQL..."
-    sudo systemctl start postgresql
+# Neuen Benutzer erstellen, falls nicht vorhanden
+if ! id "$OMNIMANAGE_USER" &>/dev/null; then
+    echo "👤 Erstelle Benutzer '$OMNIMANAGE_USER'..."
+    sudo useradd -m -s /bin/bash "$OMNIMANAGE_USER"
 fi
 
-# Datenbankprüfung und -erstellung
-read -p "Gib den Namen der Datenbank ein (Standard: omnimanage): " DB_NAME
-DB_NAME=${DB_NAME:-omnimanage}
-read -p "Gib den Benutzernamen für die Datenbank ein (Standard: omnimanage_user): " DB_USER
-DB_USER=${DB_USER:-omnimanage_user}
-read -sp "Gib das Passwort für den Benutzer $DB_USER ein: " DB_PASS
-echo ""
+# Berechtigungen setzen
+echo "🔧 Setze Verzeichnisrechte..."
+sudo chown -R "$OMNIMANAGE_USER:$OMNIMANAGE_USER" "$INSTALL_DIR"
 
-# Prüfen, ob die Datenbank existiert
-DB_EXISTS=$(sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'")
-if [ "$DB_EXISTS" == "1" ]; then
-    echo "✅ Datenbank $DB_NAME existiert bereits."
-else
-    echo "🛠️  Erstelle Datenbank $DB_NAME..."
-    sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
-    sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
-    sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
-    echo "✅ Datenbank $DB_NAME wurde erstellt und Benutzer $DB_USER hinzugefügt."
-fi
+# Als OmniManage-Benutzer das Setup ausführen
+echo "🚀 Starte Installation als '$OMNIMANAGE_USER'..."
+sudo -u "$OMNIMANAGE_USER" bash <<EOF
 
 # Virtuelle Umgebung erstellen
 echo "🐍 Erstelle virtuelle Umgebung..."
 python3 -m venv $INSTALL_DIR/venv
-chown -R $(whoami):$(whoami) $INSTALL_DIR  # Richtige Berechtigungen setzen
 
 # Virtuelle Umgebung aktivieren
 echo "🔄 Aktiviere virtuelle Umgebung..."
@@ -60,16 +31,19 @@ source $INSTALL_DIR/venv/bin/activate
 echo "📦 Installiere Python-Abhängigkeiten..."
 pip install --upgrade pip
 pip install -r $INSTALL_DIR/requirements.txt
-
-# Flask WebUI installieren
-echo "🌐 Installiere Flask WebUI..."
 pip install flask flask-cors
 
-# Systemd-Dienste kopieren
+EOF
+
+# Systemd-Dienste kopieren und Benutzer ändern
 echo "📂 Kopiere Systemd-Dienste nach /etc/systemd/system/..."
-sudo chmod 755 $SYSTEMD_DIR/*.service
 sudo cp "$SYSTEMD_DIR/omnimanage.service" /etc/systemd/system/
 sudo cp "$SYSTEMD_DIR/omnimanageweb.service" /etc/systemd/system/
+
+# Systemd-Dienst anpassen, damit er unter 'omnimanage' läuft
+echo "🛠️ Konfiguriere Systemd-Dienste..."
+sudo sed -i "s|User=root|User=$OMNIMANAGE_USER|g" /etc/systemd/system/omnimanage.service
+sudo sed -i "s|User=root|User=$OMNIMANAGE_USER|g" /etc/systemd/system/omnimanage-web.service
 
 # Dienste starten & aktivieren
 echo "🚀 Starte OmniManage Backend & WebUI..."
