@@ -1,6 +1,8 @@
 [Unit]
 Description=OmniManage Flask WebUI
 After=network.target
+StartLimitBurst=5
+StartLimitInervallSec=10
 
 [Service]
 User=root
