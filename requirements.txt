@@ -45,3 +45,5 @@ celery[redis]
 
 # Optional: Loguru für bessere Logs
 loguru
+
+Requests

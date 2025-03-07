@@ -5,12 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OmniManage</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script src="https://unpkg.com/htmx.org@1.9.5"></script>
 </head>
 <body>
     <nav>
         <a href="/">Home</a>
         <a href="/devices">Geräte</a>
+        {% if session["user"] %}
+            <span>Willkommen, {{ session["user"]["username"] }}</span>
+            <a href="/logout">Logout</a>
+        {% else %}
+            <a href="/login">Login</a>
+        {% endif %}
     </nav>
     <main>
         {% block content %}{% endblock %}
