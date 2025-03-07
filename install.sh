@@ -67,8 +67,9 @@ pip install flask flask-cors
 
 # Systemd-Dienste kopieren
 echo "📂 Kopiere Systemd-Dienste nach /etc/systemd/system/..."
+sudo chmod 755 $SYSTEMD_DIR/*.service
 sudo cp "$SYSTEMD_DIR/omnimanage.service" /etc/systemd/system/
-sudo cp "$SYSTEMD_DIR/omnimanage-web.service" /etc/systemd/system/
+sudo cp "$SYSTEMD_DIR/omnimanageweb.service" /etc/systemd/system/
 
 # Dienste starten & aktivieren
 echo "🚀 Starte OmniManage Backend & WebUI..."
