@@ -49,7 +49,7 @@ fi
 sudo chown-R $(whoami):$(whoami) $INSTALL_DIR
 echo "🐍 Erstelle virtuelle Umgebung..."
 sudo python3 -m venv $INSTALL_DIR/venv
-source venv/bin/activate
+sudo source venv/bin/activate
 sudo pip install -r requirements.txt
 
 # Flask WebUI installieren
@@ -58,8 +58,8 @@ sudo pip install flask flask-cors
 
 # Systemd-Dienste kopieren
 echo "📂 Kopiere Systemd-Dienste nach /etc/systemd/system/..."
-sudo cp "/system-services/omnimanage.service" /etc/systemd/system/
-sudo cp "/system-services/omnimanage-web.service" /etc/systemd/system/
+sudo cp "~/system-services/omnimanage.service" /etc/systemd/system/
+sudo cp "~/system-services/omnimanage-web.service" /etc/systemd/system/
 
 # Dienste starten & aktivieren
 echo "🚀 Starte OmniManage Backend & WebUI..."
