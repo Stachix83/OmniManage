@@ -21,5 +21,11 @@ def devices():
     devices = response.json()
     return render_template("devices.html", devices=devices)
 
+@app.route("/login")
+def login():
+    response = requests.get(f"{API_URL}/login/")
+    login = response.json()
+    return render_template("/login")
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
