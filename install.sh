@@ -5,11 +5,53 @@ INSTALL_DIR="/opt/omnimanage"
 SYSTEMD_DIR="$INSTALL_DIR/system-services"
 OMNIMANAGE_USER="omnimanage"
 
-# Datenbank-Variablen (Ändern falls nötig)
+# Datenbank-Variablen
 DB_NAME="omnimanage_db"
 DB_USER="omnimanage_user"
 DB_PASS="securepassword"
-DB_TYPE="mariadb"  # Ändere auf "postgresql" falls PostgreSQL genutzt wird
+
+# Prüfen, ob eine Datenbank bereits installiert ist
+DB_TYPE=""
+if command -v mysql &>/dev/null; then
+    DB_TYPE="mariadb"
+elif command -v psql &>/dev/null; then
+    DB_TYPE="postgresql"
+fi
+
+# Falls keine Datenbank gefunden wurde, Benutzer zur Auswahl auffordern
+if [ -z "$DB_TYPE" ]; then
+    echo "⚠️ Kein Datenbanksystem gefunden!"
+    echo "Welche Datenbank soll installiert werden?"
+    echo "1) MySQL/MariaDB"
+    echo "2) PostgreSQL"
+    echo "3) Abbrechen"
+    read -p "Bitte wählen (1/2/3): " db_choice
+
+    case "$db_choice" in
+        1)
+            DB_TYPE="mariadb"
+            echo "🔧 Installiere MySQL/MariaDB..."
+            sudo apt update
+            sudo apt install -y mariadb-server mariadb-client
+            ;;
+        2)
+            DB_TYPE="postgresql"
+            echo "🔧 Installiere PostgreSQL..."
+            sudo apt update
+            sudo apt install -y postgresql postgresql-contrib
+            ;;
+        3)
+            echo "❌ Installation abgebrochen."
+            exit 1
+            ;;
+        *)
+            echo "❌ Ungültige Eingabe. Installation abgebrochen."
+            exit 1
+            ;;
+    esac
+else
+    echo "✅ Gefundene Datenbank: $DB_TYPE"
+fi
 
 # Neuen Benutzer erstellen, falls nicht vorhanden
 echo "👤 Erstelle Benutzer '$OMNIMANAGE_USER'..."
@@ -20,31 +62,19 @@ fi
 # Berechtigungen setzen
 echo "🔧 Setze Verzeichnisrechte..."
 sudo chown -R "$OMNIMANAGE_USER:$OMNIMANAGE_USER" "$INSTALL_DIR"
-echo "Setze Exekutierrechte für update.sh & deinstall.sh..."
-sudo chmod +x "$INSTALL_DIR/update.sh"
-sudo chmod +x "$INSTALL_DIR/deinstall.sh"
-sudo chmod +x "$INSTALL_DIR/requirements_update.py"
-
-# Als OmniManage-Benutzer das Setup ausführen
-echo "🚀 Starte Installation als '$OMNIMANAGE_USER'..."
-sudo -u "$OMNIMANAGE_USER" bash <<EOF
+sudo chmod +x "$INSTALL_DIR/update.sh" "$INSTALL_DIR/deinstall.sh" "$INSTALL_DIR/requirements_update.py"
 
 # Virtuelle Umgebung erstellen
 echo "🐍 Erstelle virtuelle Umgebung..."
+sudo -u "$OMNIMANAGE_USER" bash <<EOF
 python3 -m venv $INSTALL_DIR/venv
-
-# Virtuelle Umgebung aktivieren
-echo "🔄 Aktiviere virtuelle Umgebung..."
 source $INSTALL_DIR/venv/bin/activate
-
-# Abhängigkeiten installieren
-echo "📦 Installiere Python-Abhängigkeiten..."
 pip install --upgrade pip
 pip install -r $INSTALL_DIR/requirements.txt
 EOF
 
-# Abhängigkeiten aktualisieren und installieren
-echo "📦 Aktualisiere und Installiere Python-Abhängigkeiten..."
+# Abhängigkeiten aktualisieren
+echo "📦 Aktualisiere Python-Abhängigkeiten..."
 sudo ./requirements_update.py
 
 # Datenbank erstellen
@@ -58,73 +88,60 @@ elif [ "$DB_TYPE" == "postgresql" ]; then
     sudo -u postgres psql -c "CREATE DATABASE $DB_NAME;"
     sudo -u postgres psql -c "CREATE USER $DB_USER WITH ENCRYPTED PASSWORD '$DB_PASS';"
     sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;"
-else
-    echo "⚠️ Unbekannter Datenbanktyp '$DB_TYPE', bitte manuell prüfen."
 fi
 
-# Systemdienste konfigurieren und starten
+# Datenbankschema initialisieren
+echo "🔧 Initialisiere Datenbankschema..."
+sudo -u "$OMNIMANAGE_USER" bash <<EOF
+source $INSTALL_DIR/venv/bin/activate
+cd $INSTALL_DIR
+alembic upgrade head
+EOF
+
+# Systemdienste konfigurieren
 echo "🛠️ Konfiguriere Systemd-Dienste..."
-echo "OmniManage Backend wird eingerichtet und gestartet..."
 echo "
 [Unit]
 Description=OmniManage FastAPI Server
 After=network.target
-StartLimitBurst=5
-StartLimitIntervalSec=10
-
 [Service]
 User=$OMNIMANAGE_USER
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$INSTALL_DIR/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
 Restart=always
-RestartSec=5
-
 [Install]
 WantedBy=multi-user.target" | sudo tee /etc/systemd/system/omnimanage.service
 
-echo "🛠️ Konfiguriere OmniManage WebUI"
 echo "
 [Unit]
 Description=OmniManage Flask WebUI
 After=network.target
-StartLimitBurst=5
-StartLimitIntervalSec=10
-
 [Service]
 User=$OMNIMANAGE_USER
 WorkingDirectory=$INSTALL_DIR
 ExecStart=$INSTALL_DIR/venv/bin/python frontend/frontend.py
 Restart=always
-RestartSec=5
-
 [Install]
 WantedBy=multi-user.target" | sudo tee /etc/systemd/system/omnimanage-web.service
 
 # Systemd-Dienste starten
 echo "🚀 Starte OmniManage Backend & WebUI..."
-sudo chmod 644 /etc/systemd/system/omnimanage.service
-sudo chmod 644 /etc/systemd/system/omnimanage-web.service
 sudo systemctl daemon-reload
-sudo systemctl enable omnimanage-web.service
-sudo systemctl enable omnimanage.service
-sudo systemctl start omnimanage-web.service
-sudo systemctl start omnimanage.service
+sudo systemctl enable --now omnimanage-web.service
+sudo systemctl enable --now omnimanage.service
 
 # Selfcheck: Überprüfen, ob die Dienste laufen
-echo "🔍 Selfcheck OmniManage-Dienststatus..."
 if systemctl is-active --quiet omnimanage.service; then
     echo "✅ OmniManage Backend läuft erfolgreich!"
 else
-    echo "❌ Fehler: OmniManage Backend konnte nicht gestartet werden. Bitte überprüfe die Logs mit:"
-    echo "      sudo journalctl -u omnimanage.service --no-pager"
+    echo "❌ Fehler: OmniManage Backend konnte nicht gestartet werden."
     exit 1
 fi
 
 if systemctl is-active --quiet omnimanage-web.service; then
     echo "✅ OmniManage WebUI läuft erfolgreich!"
 else
-    echo "❌ Fehler: OmniManage WebUI konnte nicht gestartet werden. Bitte überprüfe die Logs mit:"
-    echo "   sudo journalctl -u omnimanage-web.service --no-pager"
+    echo "❌ Fehler: OmniManage WebUI konnte nicht gestartet werden."
     exit 1
 fi
 
@@ -132,9 +149,5 @@ fi
 IP_ADDRESS=$(hostname -I | awk '{print $1}')
 
 echo "✅ OmniManage wurde erfolgreich installiert!"
-
-echo "🔗 OmniManage Backend ist erreichbar unter: http://$IP_ADDRESS:8000"
-echo "🔗 OmniManage WebUI ist erreichbar unter: http://$IP_ADDRESS:5000"
-echo "Der Admin-Benutzer lautet: admin"
-echo "Das Passwort lautet: adminpassword"
-echo "Bitte ändern Sie das Passwort nach dem ersten Login!"
+echo "🔗 OmniManage Backend: http://$IP_ADDRESS:8000"
+echo "🔗 OmniManage WebUI: http://$IP_ADDRESS:5000"
