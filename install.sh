@@ -17,6 +17,7 @@ sudo chown -R "$OMNIMANAGE_USER:$OMNIMANAGE_USER" "$INSTALL_DIR"
 echo "setze Exekutierrechte für update.sh & deinstall.sh..."
 sudo chmod +x "$INSTALL_DIR/update.sh"
 sudo chmod +x "$INSTALL_DIR/deinstall.sh"
+sudo chmod +x "$INSTALL_DIR/requirements_update.py"
 
 # Als OmniManage-Benutzer das Setup ausführen
 echo "🚀 Starte Installation als '$OMNIMANAGE_USER'..."
@@ -35,6 +36,11 @@ echo "📦 Installiere Python-Abhängigkeiten..."
 pip install --upgrade pip
 pip install -r $INSTALL_DIR/requirements.txt
 EOF
+
+#Abhängikeiten aktualisieren und Installieren
+echo "📦 Aktualisiere und Installiere Python-Abhängigkeiten..."
+sudo ./requirements_update.py
+
 
 # Systemdienste Konfigurieren und starten
 echo "🛠️ Konfiguriere Systemd-Dienste..."
