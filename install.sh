@@ -106,5 +106,9 @@ fi
 IP_ADDRESS=$(hostname -I | awk '{print $1}')
 
 echo "✅ OmniManage wurde erfolgreich installiert!"
+
 echo "🔗 OmniManage Backend ist erreichbar unter: http://$IP_ADDRESS:8000"
 echo "🔗 OmniManage WebUI ist erreichbar unter: http://$IP_ADDRESS:5000"
+echo "der Admin-Benutzer lautet: admin"
+echo "das Passwort lautet: adminpassword"
+echo "Bitte ändern Sie das Passwort nach dem ersten Login!"
